@@ -1,12 +1,13 @@
 from pytubefix import YouTube, Playlist
-from tqdm.notebook import tqdm
 from termcolor import colored
-from os.path import join
+from tqdm import tqdm
 import subprocess
 import threading
 import os
 import re
 
+from pytubefix.exceptions import PytubeFixError, VideoUnavailable, RegexMatchError
+from urllib.error import URLError
 
 
 class YoutubeDownloader:
@@ -32,8 +33,12 @@ class YoutubeDownloader:
         return results
 
     def get_playlist_urls(self, playlist_url: str) -> list:
-        playlist = Playlist(playlist_url)
-        return playlist.video_urls
+        try:
+            playlist = Playlist(playlist_url)
+            return playlist.video_urls
+        except Exception as e:
+            print(colored(f"Error fetching playlist {playlist_url}: {e}", "red"))
+            return []
 
     def get_urls_from_textFile(self, path: str):
         with open(path, 'r') as file:
@@ -51,62 +56,75 @@ class YoutubeDownloader:
 
 
     def choose_resolution(self, yt_obj: YouTube):
-        streams = yt_obj.streams.filter(file_extension='mp4').order_by('resolution').desc()
-
-        options = []
-        for stream in streams:
-            res = stream.resolution
-            if not res:
-                continue
-            filesize = stream.filesize
-            kind = "progressive" if stream.is_progressive else "video-only"
-            if (res, kind) not in [(s["res"], s["kind"]) for s in options]:
-                options.append({"res": res, "kind": kind, "stream": stream})
-                print(f"{len(options)}) {res} ({kind}) (~{filesize / (1024*1024):.2f} MB)")
-
-        if not options:
-            print(colored("No valid resolutions found.", "red"))
-            return None
-
         try:
-            choice = int(input("Choose resolution (number): "))
-            if 1 <= choice <= len(options):
-                return options[choice - 1]["stream"]
-            else:
-                print(colored("Invalid choice.", "red"))
+            streams = yt_obj.streams.filter(file_extension='mp4').order_by('resolution').desc()
+
+            options = []
+            for stream in streams:
+                res = stream.resolution
+                if not res:
+                    continue
+                filesize = stream.filesize
+                kind = "progressive" if stream.is_progressive else "video-only"
+                if (res, kind) not in [(s["res"], s["kind"]) for s in options]:
+                    options.append({"res": res, "kind": kind, "stream": stream})
+                    print(f"{len(options)}) {res} ({kind}) (~{filesize / (1024*1024):.2f} MB)")
+
+            if not options:
+                print(colored("No valid resolutions found.", "red"))
                 return None
-        except ValueError:
-            print(colored("Invalid input.", "red"))
+
+            try:
+                choice = int(input("Choose resolution (number): "))
+                if 1 <= choice <= len(options):
+                    return options[choice - 1]["stream"]
+                else:
+                    print(colored("Invalid choice.", "red"))
+                    return None
+            except ValueError:
+                print(colored("Invalid input.", "red"))
+                return None
+        except Exception as e:
+            print(colored(f"Error choosing resolution: {e}", "red"))
             return None
 
 
     def build_queue(self, urls: list[str]) -> list[dict]:
-        yt_objects = [YouTube(url, on_progress_callback=self.on_progress) for url in urls]
         download_queue = []
 
-        for yt_obj in yt_objects:
-            filename = re.sub(r'[\\/*?:"<>|]', "_", yt_obj.title)
+        for url in urls:
+            try:
+                yt_obj = YouTube(url, on_progress_callback=self.on_progress)
+                title = yt_obj.title
+                filename = re.sub(r'[\\/*?:"<>|]', "_", title)
 
-            print(f"\n{colored('Available resolutions for:', 'yellow')} {filename}")
-            chosen_stream = self.choose_resolution(yt_obj)
+                print(f"\n{colored('Available resolutions for:', 'yellow')} {filename}")
+                chosen_stream = self.choose_resolution(yt_obj)
 
-            if not chosen_stream:
-                print(colored("Skipping video due to invalid resolution choice.", "red"))
+                if not chosen_stream:
+                    print(colored("Skipping video due to invalid resolution choice.", "red"))
+                    continue
+
+                video_path = os.path.join(self.video_dir_path, f'{filename}.mp4')
+                audio_path = os.path.join(self.audio_dir_path, f'{filename}.m4a')
+                merged_path = os.path.join(self.merged_dir_path, f'{filename}.mp4')
+
+                download_queue.append({
+                    "yt": yt_obj,
+                    "filename": filename,
+                    "video_path": video_path,
+                    "audio_path": audio_path,
+                    "merged_path": merged_path,
+                    "stream": chosen_stream,
+                    "is_progressive": chosen_stream.is_progressive
+                })
+
+            except (URLError, PytubeFixError, VideoUnavailable, RegexMatchError, AttributeError) as e:
+                print(colored(f"Error processing URL {url}: {e}", "red"))
                 continue
-
-            video_path = os.path.join(self.video_dir_path, f'{filename}.mp4')
-            audio_path = os.path.join(self.audio_dir_path, f'{filename}.m4a')
-            merged_path = os.path.join(self.merged_dir_path, f'{filename}.mp4')
-
-            download_queue.append({
-                "yt": yt_obj,
-                "filename": filename,
-                "video_path": video_path,
-                "audio_path": audio_path,
-                "merged_path": merged_path,
-                "stream": chosen_stream,
-                "is_progressive": chosen_stream.is_progressive
-            })
+            except Exception as e:
+                print(colored(f"Unexpected error for URL {url}: {e}", "red"))
+                continue
 
         return download_queue
 
@@ -147,7 +165,6 @@ class YoutubeDownloader:
 
             except Exception as e:
                 print(f'{yt_obj.watch_url} / {colored("error", "red")} => {e}')
-
 
 
     def combine(self, video_path: str, audio_path: str, output_path: str):
