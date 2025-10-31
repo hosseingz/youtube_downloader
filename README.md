@@ -73,7 +73,7 @@ pip install -r requirements.txt
 > If `requirements.txt` is missing, manually install:
 
 ```bash
-pip install pytubefix tqdm termcolor
+pip install pytubefix ffmpeg-python tqdm termcolor
 ```
 
 ### 4️⃣ Install FFmpeg
@@ -173,6 +173,7 @@ You can run this YouTube Downloader directly in a Google Colab notebook. This is
 
     ```python
     from youtube_downloader.src.downloader import YoutubeDownloader
+    from tqdm.notebook import tqdm
     from os.path import join
 
     # Define the base directory in Colab environment
