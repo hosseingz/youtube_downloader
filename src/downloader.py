@@ -3,6 +3,7 @@ from termcolor import colored
 from tqdm import tqdm
 import subprocess
 import threading
+import ffmpeg
 import os
 import re
 
@@ -168,16 +169,12 @@ class YoutubeDownloader:
 
 
     def combine(self, video_path: str, audio_path: str, output_path: str):
-        command = [
-            'ffmpeg',
-            '-i', video_path,
-            '-i', audio_path,
-            '-c:v', 'copy',
-            '-c:a', 'aac',
-            '-strict', 'experimental',
-            output_path
-        ]
-
+        input_video = ffmpeg.input(video_path)
+        input_audio = ffmpeg.input(audio_path)
+        
+        stream = ffmpeg.output(input_video, input_audio, output_path, vcodec='copy', acodec='aac')
+        command = ffmpeg.compile(stream)
+        
         subprocess.run(command)
 
     def merge_all_videos(self):

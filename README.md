@@ -78,11 +78,15 @@ pip install pytubefix ffmpeg-python tqdm termcolor
 
 ### 4️⃣ Install FFmpeg
 
-Make sure `ffmpeg` is installed and available in your system path:
+**Overview:** FFmpeg is a powerful multimedia framework essential for audio/video processing. This project requires it to be accessible system-wide.
 
-```bash
-ffmpeg -version
-```
+**Installation:**
+
+- **Windows:** Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
+- **macOS:** `brew install ffmpeg`
+- **Linux:** `sudo apt install ffmpeg` (Ubuntu/Debian) or equivalent for your distro
+
+**Verification:** Run `ffmpeg -version` in your terminal. If it returns version information, FFmpeg is correctly installed and accessible.
 
 If this shows version info → ✅ you're good to go.
 
