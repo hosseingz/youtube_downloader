@@ -1,59 +1,57 @@
-# 🎬 YoutubeDownloader  
+# 🎬 YoutubeDownloader
 
-![version](https://img.shields.io/badge/version-1.0.0-blue.svg)  ![license](https://img.shields.io/badge/license-MIT-green.svg)  ![python](https://img.shields.io/badge/python-3.9%2B-yellow.svg)  ![status](https://img.shields.io/badge/status-stable-brightgreen.svg)  
+![version](https://img.shields.io/badge/version-1.0.0-blue.svg)  ![license](https://img.shields.io/badge/license-MIT-green.svg)  ![python](https://img.shields.io/badge/python-3.9%2B-yellow.svg)  ![status](https://img.shields.io/badge/status-stable-brightgreen.svg)
 
-A **powerful, beginner-friendly, and interactive YouTube downloader** built with [pytubefix](https://pypi.org/project/pytubefix/) and `ffmpeg`.  
-Download videos 🎥, extract audios 🎵, or merge them together seamlessly ✅.  
-
----
-
-## 🌹 Requirements  
-
-Before you begin, ensure you have the following installed:  
-
-- 🐍 **Python**: `>=3.9`  
-- 📦 **Dependencies**:  
-  - [pytubefix](https://pypi.org/project/pytubefix/) (for YouTube handling)  
-  - [tqdm](https://pypi.org/project/tqdm/) (progress bars)  
-  - [termcolor](https://pypi.org/project/termcolor/) (colored terminal output)  
-- 🎬 **FFmpeg**: required for merging video and audio streams  
-  - [Download FFmpeg](https://ffmpeg.org/download.html) and ensure it's available in your system PATH  
-
-✅ Supported OS: Linux, macOS, Windows  
+A **powerful, beginner-friendly, and interactive YouTube downloader** built with [pytubefix](https://pypi.org/project/pytubefix/) and `ffmpeg`.
+Download videos 🎥, extract audios 🎵, or merge them together seamlessly ✅.
 
 ---
 
-## 🎯 Objectives  
+## 🌹 Requirements
 
-The goal of **YoutubeDownloader** is to:  
-
-- 🚀 Provide an **easy-to-use tool** for downloading YouTube videos and playlists.  
-- 🎥 Allow users to **choose video resolutions** (with size details).  
-- 🎵 Support both **progressive streams** (video+audio combined) and **separate streams** (video-only + audio).  
-- 🔗 Handle both **single video links** and full **playlists**.  
-- 🛠️ Automatically **merge audio + video** using `ffmpeg`.  
-- 📝 Ignore comments (`# ...`) and empty lines when reading URLs from text files.  
-
-### ✨ Features  
-
-- ✅ Download **single videos** or **full playlists**  
-- ✅ Interactive **resolution selection**  
-- ✅ Download **audio-only streams**  
-- ✅ Auto-create directories for videos, audios, and merged files  
-- ✅ Intelligent skipping if file already exists  
-- ✅ Automatic **merging** of separate audio/video tracks  
-- ✅ Easy **batch download** via `.txt` file with URLs  
+- 🐍 **Python**: `>=3.9`
+- 📦 **Dependencies**:
+  - [pytubefix](https://pypi.org/project/pytubefix/)
+  - [tqdm](https://pypi.org/project/tqdm/)
+  - [termcolor](https://pypi.org/project/termcolor/)
+  - [ffmpeg-python](https://pypi.org/project/ffmpeg-python/)
+- 🎬 **FFmpeg**: required for merging video and audio streams. Must be available in your system PATH.
+- ✅ Supported OS: Linux, macOS, Windows
 
 ---
 
-## ⚙️ Setup  
+## 🎯 Objectives
 
-### 1️⃣ Clone the Repository  
+- 🚀 Provide an **easy-to-use tool** for downloading YouTube videos and playlists.
+- 🎥 Allow users to **choose video resolutions** (with size details).
+- 🎵 Support both **progressive streams** (video+audio combined) and **separate streams** (video-only + audio).
+- 🔗 Handle both **single video links** and full **playlists**.
+- 🛠️ Automatically **merge audio + video** using `ffmpeg`.
+- 🔄 Manage downloads using an **interactive download queue**.
+
+### ✨ Features
+
+- ✅ Download **single videos** or **full playlists**
+- ✅ Interactive **resolution selection**
+- ✅ Download **audio-only streams**
+- ✅ Auto-create directories for videos, audios, and merged files
+- ✅ Intelligent skipping if file already exists
+- ✅ Automatic **merging** of separate audio/video tracks
+- ✅ Easy **batch download** via `.txt` file with URLs
+- ✅ **Download Queue**: Build a list of videos to download, choose to add to or clear the existing queue.
+- ✅ **Interactive Queue Management**: Change resolution of items already in the queue before starting the download.
+- ✅ **Duplicate Prevention**: Automatically skip adding the same video URL to the queue multiple times.
+
+---
+
+## ⚙️ Setup
+
+### 1️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/hosseingz/youtube_downloader.git
 cd YoutubeDownloader
-````
+```
 
 ### 2️⃣ Create a Virtual Environment (recommended)
 
@@ -62,7 +60,6 @@ python -m venv venv
 source venv/bin/activate   # On Linux/Mac
 venv\Scripts\activate      # On Windows
 ```
-
 
 ### 3️⃣ Install Dependencies
 
@@ -78,8 +75,6 @@ pip install pytubefix ffmpeg-python tqdm termcolor
 
 ### 4️⃣ Install FFmpeg
 
-**Overview:** FFmpeg is a powerful multimedia framework essential for audio/video processing. This project requires it to be accessible system-wide.
-
 **Installation:**
 
 - **Windows:** Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
@@ -88,15 +83,11 @@ pip install pytubefix ffmpeg-python tqdm termcolor
 
 **Verification:** Run `ffmpeg -version` in your terminal. If it returns version information, FFmpeg is correctly installed and accessible.
 
-If this shows version info → ✅ you're good to go.
-
 ---
 
 ## 🚀 Examples
 
 ### 🔹 Getting Started
-
-Here’s the quickest way to start downloading:
 
 ```python
 from src.downloader import YoutubeDownloader
@@ -112,23 +103,25 @@ https://www.youtube.com/watch?v=example_video_id_1
 https://www.youtube.com/playlist?list=example_playlist_id
 ''')
 
-app.download(urls)
-app.merge_all_videos()
+app.build_queue(urls)
+app.download()
+# Optional: app.merge_all_videos() if needed for leftover files
 ```
-
-### 🔹 Example Walkthrough
-
-1. Paste your URLs in `urls` (supports videos + playlists).
-2. When prompted, **choose a resolution** for each video.
-3. If the video is **progressive**, it saves directly in `merged/`.
-4. If not, it downloads video-only + audio, then later merges them.
 
 ### 🔹 Using a Text File of URLs
 
 ```python
+from src.downloader import YoutubeDownloader
+
+app = YoutubeDownloader(
+    video_dir_path="./downloads/videos",
+    audio_dir_path="./downloads/audio",
+    merged_dir_path="./downloads/merged"
+)
+
 urls = app.get_urls_from_textFile("urls.txt")
-app.download(urls)
-app.merge_all_videos()
+app.build_queue(urls)
+app.download()
 ```
 
 📄 `urls.txt` example:
@@ -139,85 +132,56 @@ https://www.youtube.com/watch?v=abcd1234
 https://www.youtube.com/playlist?list=PLexample123
 ```
 
----
+### 🔹 Using the Download Queue
+
+The downloader uses a persistent queue. When you call `app.build_queue(urls)`, it will prompt you if the queue is not empty:
+
+- **Clear it and start fresh (c)**: Discards the current queue and starts a new one based on the provided URLs.
+- **Add new URLs to existing queue (a)**: Adds the new URLs to the current queue.
+- **Edit existing resolutions (e)**: Allows you to interactively change the resolution of videos already in the queue before downloading.
+
+This allows for better management of multiple downloads and fine-tuning before execution.
+
 ### 🚀 Using in Google Colab
 
-You can run this YouTube Downloader directly in a Google Colab notebook. This is especially useful for downloading larger files without worrying about local storage limits or internet connection stability during the download process.
+```python
+from youtube_downloader.src.downloader import YoutubeDownloader
+from tqdm.notebook import tqdm
+from os.path import join
 
-1.  **Open a new Colab notebook.**
-2.  **Run the following commands in separate cells to set up the environment:**
+# Define the base directory in Colab environment
+BASE_DIR = '/content/downloads/'
 
+# Configure the downloader
+app = YoutubeDownloader(
+    video_dir_path=join(BASE_DIR, 'videos'),       # Local Colab storage
+    audio_dir_path=join(BASE_DIR, 'audios'),       # Local Colab storage
+    merged_dir_path=join('/content/drive/MyDrive/', 'YT_Downloads') # Saves merged files to Drive
+)
 
-    **Clone the Repository:**
+# Example: Define your URLs
+urls = app.get_urls("""
+https://www.youtube.com/watch?v=example_video_id
+# https://www.youtube.com/playlist?list=example_playlist_id
+""")
 
-    ```bash
-    !git clone https://github.com/hosseingz/youtube_downloader.git
-    ```
-    *(This command downloads the project code into your Colab environment.)*
-    
-    **Install Dependencies:**
+# Build the queue
+app.build_queue(urls)
 
-    ```bash
-    !pip install -r youtube_downloader/requirements.txt
-    ```
+# Start the download process
+app.download()
 
-3.  **Connect to Google Drive (Optional but Recommended):**
+# Optional: Merge any remaining video/audio pairs
+# app.merge_all_videos()
 
-    To save your downloaded files directly to your Google Drive, first mount your Drive. Add and run this code in a cell:
-
-    ```python
-    from google.colab import drive
-    drive.mount('/content/drive')
-    ```
-    *(Follow the instructions to authorize Colab to access your Drive.)*
-
-4.  **Configure and Run the Downloader:**
-
-    Create a new cell and configure the `YoutubeDownloader` instance. You can point the `merged_dir_path` (or other paths) to your Drive folder to save files there automatically.
-
-    ```python
-    from youtube_downloader.src.downloader import YoutubeDownloader
-    from tqdm.notebook import tqdm
-    from os.path import join
-
-    # Define the base directory in Colab environment
-    BASE_DIR = '/content/downloads/'
-
-    # Configure the downloader
-    # Example: Save videos and audio locally in Colab, merged files to Drive
-    app = YoutubeDownloader(
-        video_dir_path=join(BASE_DIR, 'videos'),       # Local Colab storage
-        audio_dir_path=join(BASE_DIR, 'audios'),       # Local Colab storage
-        merged_dir_path=join('/content/drive/MyDrive/', 'YT_Downloads') # Saves merged files to Drive
-    )
-
-    # Example: Define your URLs (replace with actual YouTube links)
-    # You can also use app.get_urls_from_textFile() if you have a file in Colab or Drive.
-    urls = app.get_urls("""
-    https://www.youtube.com/watch?v=example_video_id
-    # https://www.youtube.com/playlist?list=example_playlist_id # Uncomment and add a real playlist link if needed
-    """)
-
-    # Start the download process
-    app.download(urls)
-
-    # Merge audio and video files if necessary
-    app.merge_all_videos()
-
-    print("Download and merge process completed!")
-    ```
-    *(This code configures the downloader to use Colab's temporary storage for intermediate files and saves the final merged file to your specified Drive folder. Adjust paths as needed.)*
-
-    **Important:** Files saved in the Colab environment's temporary storage (`/content/downloads/videos`, `/content/downloads/audios`) will be **deleted** when the Colab runtime disconnects. Files saved in your mounted Google Drive (`/content/drive/MyDrive/YT_Downloads` in the example) will persist. The `merge_all_videos` step is crucial to combine the temporary parts into the final file before the runtime ends.
+print("Download process completed!")
+```
 
 ---
-
 
 ## 🤝 Contributing
 
 Contributions are welcome! 🎉
-To contribute:
-
 1. Fork the repo 🍴
 2. Create a new branch (`git checkout -b feature-name`)
 3. Commit your changes (`git commit -m 'Add feature'`)
