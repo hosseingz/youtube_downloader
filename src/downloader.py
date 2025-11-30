@@ -132,7 +132,7 @@ class YoutubeDownloader:
         """
         Builds the download queue based on URLs.
         If the queue is empty, it creates a new one.
-        If the queue is not empty, it asks the user whether to clear it or add to it.
+        If the queue is not empty, it asks the user whether to clear it, add to it, or edit existing resolutions.
         """
         if self.download_queue:
             print(colored("Download queue already exists.", "yellow"))
@@ -145,19 +145,34 @@ class YoutubeDownloader:
             elif choice == 'e':
                 self.edit_queue_resolutions()
                 return self.download_queue  # Return after editing, don't process new URLs
-            elif choice != 'a':
+            elif choice == 'a':
+                # Only add new URLs, do not re-prompt for existing ones
+                pass # Continue to add new URLs
+            else:
                 print("Invalid choice. Cancelling build_queue.")
                 return self.download_queue  # Return existing queue if invalid input
 
         # Remove duplicate URLs from the input list before processing
-        seen_urls = set()
+        # Also remove any URLs that are already in the current queue
+        seen_urls = {item['yt'].watch_url for item in self.download_queue} # Start with existing URLs
         unique_urls = []
         for url in urls:
             if url not in seen_urls:
                 seen_urls.add(url)
                 unique_urls.append(url)
 
-        # Process new URLs only if the queue is empty or user chose to add
+        # If no new unique URLs are provided after deduplication, exit
+        if not unique_urls:
+            if self.download_queue:
+                print(colored("No new unique URLs provided to add to the existing queue.", "yellow"))
+            else:
+                # This case means the initial call had no valid new URLs
+                print(colored("No valid URLs provided for a new queue.", "yellow"))
+            
+            return self.download_queue
+
+
+        # Process only the new unique URLs
         for url in unique_urls:
             try:
                 yt_obj = YouTube(url, on_progress_callback=self.on_progress)
@@ -175,11 +190,7 @@ class YoutubeDownloader:
                 audio_path = os.path.join(self.audio_dir_path, f'{filename}.m4a')
                 merged_path = os.path.join(self.merged_dir_path, f'{filename}.mp4')
 
-                # Check if a video with the same name (i.e., same URL) has already been added to the queue
-                if any(item['yt'].watch_url == yt_obj.watch_url for item in self.download_queue):
-                    print(colored(f"URL for '{filename}' is already in the queue. Skipping.", "yellow"))
-                    continue
-
+                # Add the new item to the queue
                 self.download_queue.append({
                     "yt": yt_obj,
                     "filename": filename,
