@@ -128,6 +128,22 @@ class YoutubeDownloader:
             except ValueError:
                 print(colored("Invalid input. Please enter a number or 'q'.", "red"))
 
+    def _extract_video_id(self, url: str) -> str | None:
+        """
+        Extracts the video ID from a YouTube URL using regex.
+        Handles various URL formats like youtu.be, watch?v=, embed, v=, etc.
+        Returns the ID if found and valid, otherwise None.
+        """
+        # Regex pattern to match YouTube video IDs from various URL formats
+        pattern = r'(?:https?://)?(?:www\.)?(?:youtube\.com/(?:embed|v|watch\?.*v=|shorts/)|youtu\.be/)([a-zA-Z0-9_-]{11})'
+        match = re.search(pattern, url)
+        if match:
+            video_id = match.group(1)
+            # Optional: Re-validate the extracted ID (though regex already checks length and chars)
+            if len(video_id) == 11 and re.fullmatch(r'[a-zA-Z0-9_-]{11}', video_id):
+                return video_id
+        return None
+
     def build_queue(self, urls:list[str]) -> list[dict]:
         """
         Builds the download queue based on URLs.
@@ -154,11 +170,12 @@ class YoutubeDownloader:
 
         # Remove duplicate URLs from the input list before processing
         # Also remove any URLs that are already in the current queue
-        seen_urls = {item['yt'].watch_url for item in self.download_queue} # Start with existing URLs
+        processed_video_ids = {item['id'] for item in self.download_queue} # Start with existing URLs
         unique_urls = []
         for url in urls:
-            if url not in seen_urls:
-                seen_urls.add(url)
+            video_id = self._extract_video_id(url)
+            if video_id and video_id not in processed_video_ids:
+                processed_video_ids.add(video_id)
                 unique_urls.append(url)
 
         # If no new unique URLs are provided after deduplication, exit
@@ -193,6 +210,7 @@ class YoutubeDownloader:
                 # Add the new item to the queue
                 self.download_queue.append({
                     "yt": yt_obj,
+                    "id": self._extract_video_id(url),
                     "filename": filename,
                     "video_path": video_path,
                     "audio_path": audio_path,
