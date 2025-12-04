@@ -144,38 +144,53 @@ This allows for better management of multiple downloads and fine-tuning before e
 
 ### 🚀 Using in Google Colab
 
-```python
-from youtube_downloader.src.downloader import YoutubeDownloader
-from tqdm.notebook import tqdm
-from os.path import join
+Before running the downloader in Google Colab, it's crucial to **mount your Google Drive**. Colab's runtime environment is temporary, meaning any files downloaded directly to the Colab instance (like `/content/downloads/videos` or `/content/downloads/audios`) will be **deleted** when the runtime disconnects or restarts. By mounting your Google Drive, you can save the final merged video files directly to your Drive, ensuring they persist.
 
-# Define the base directory in Colab environment
-BASE_DIR = '/content/downloads/'
+1.  **Mount Google Drive:** Run the following code in a cell and follow the authorization steps.
+    ```python
+    from google.colab import drive
+    drive.mount('/content/drive')
+    ```
 
-# Configure the downloader
-app = YoutubeDownloader(
-    video_dir_path=join(BASE_DIR, 'videos'),       # Local Colab storage
-    audio_dir_path=join(BASE_DIR, 'audios'),       # Local Colab storage
-    merged_dir_path=join('/content/drive/MyDrive/', 'YT_Downloads') # Saves merged files to Drive
-)
+2.  **Configure and Run the Downloader:** Use the example code below. Ensure the `merged_dir_path` points to a folder within your mounted Drive (e.g., `/content/drive/MyDrive/YourFolder`). Files saved here will persist. Intermediate files (video-only, audio-only) can be saved to the local Colab storage (`/content/downloads/...`) if needed for the merge process.
 
-# Example: Define your URLs
-urls = app.get_urls("""
-https://www.youtube.com/watch?v=example_video_id
-# https://www.youtube.com/playlist?list=example_playlist_id
-""")
+    ```python
+    from youtube_downloader.src.downloader import YoutubeDownloader
+    from tqdm.notebook import tqdm
+    from os.path import join
 
-# Build the queue
-app.build_queue(urls)
+    # Define the base directory in Colab environment for temporary files
+    BASE_DIR = '/content/downloads/'
 
-# Start the download process
-app.download()
+    # Configure the downloader
+    # Example: Save temporary video/audio locally, merged file to Drive
+    app = YoutubeDownloader(
+        video_dir_path=join(BASE_DIR, 'videos'),       # Local Colab storage (might be deleted)
+        audio_dir_path=join(BASE_DIR, 'audios'),       # Local Colab storage (might be deleted)
+        merged_dir_path=join('/content/drive/MyDrive/', 'YT_Downloads') # Persistent storage in Drive
+    )
 
-# Optional: Merge any remaining video/audio pairs
-# app.merge_all_videos()
+    # Example: Define your URLs (replace with actual YouTube links)
+    # You can also use app.get_urls_from_textFile() if you have a file in Colab or Drive.
+    urls = app.get_urls("""
+    https://www.youtube.com/watch?v=example_video_id
+    # https://www.youtube.com/playlist?list=example_playlist_id # Uncomment and add a real link if needed
+    """)
 
-print("Download process completed!")
-```
+    # Build the download queue
+    app.build_queue(urls)
+
+    # Start the download process
+    app.download()
+
+    # Optional: Merge any remaining separate video/audio files if necessary
+    # This step is crucial if the download process was interrupted or if files were added separately.
+    # app.merge_all_videos()
+
+    print("Download process completed! Check your Google Drive for merged files.")
+    ```
+
+    For a detailed, ready-to-use notebook example, see the guide: [`youtube_downloader_colab_guide.ipynb`](youtube_downloader_colab_guide.ipynb).
 
 ---
 
